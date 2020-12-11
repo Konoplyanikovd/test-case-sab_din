@@ -1,0 +1,68 @@
+@model net_example.Models.UserModel
+
+<div class="container">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-2" id="sidebar">
+            <p>User:</p>
+            <p>@Model.LastName @Model.Name</p>
+        </div>
+        <!-- Page Content -->
+        <div class="col-10" id="content">
+            <div class="row mb-3">
+                <label for="chat-display" class="form-label">Chat display</label>
+                <textarea readonly class="form-control" id="chat-display" rows="20">
+                    @foreach (var Message in ViewBag.Messages)
+                    {
+                        @Message.Message
+                        @Html.Raw("\n")
+                    }
+                </textarea>
+            </div>
+            <div class="row g-3">
+                <div class="col-auto">
+                    <input type="text" class="form-control" id="messageInput" placeholder="Write message">
+                </div>
+                <div class="col-auto">
+                    <button id="sendButton" type="button" class="btn btn-primary mb-3">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(e) {
+        $('#sendButton').click(function(ev) {
+            let messageInput = $('#messageInput');
+            let message = messageInput.val();
+            messageInput.val("");
+
+            $.ajax('/Chat/Message', {
+                method: 'POST',
+                data: {
+                    message: message,
+                    chat: 1,
+                    user: @Model.Id
+                }
+            }).done(function(r) {
+                $.ajax('/Chat/Messages', {
+                    method: 'GET',
+                    data: {
+                        chat: 1
+                    },
+                    success: function(r) {
+                        let string = '';
+                        $(r).each(function(k, i) {
+                            if (i.message === null) {} else {
+                                string += i.message + "\n";
+                            }
+                        });
+
+                        $('#chat-display').text(string);
+                    }
+                });
+            });
+        });
+    });
+</script>
